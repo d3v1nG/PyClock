@@ -1,7 +1,7 @@
 from tkinter import * 
 from tkinter.ttk import *
 import tkinter.font as tkFont
-from GameManager import GameManager
+# from GameManager import GameManager
 from ChessTimer import ChessTimer
 import threading
 import os
