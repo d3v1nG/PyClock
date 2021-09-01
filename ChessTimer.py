@@ -3,46 +3,67 @@ import time
 
 
 class ChessTimer:
-
-    def __init__(self, timeout):
-        timeout = timeout * 60
-        self.timer = Timer(timeout, self.end)
+    # simple timer class wrapped around threading.Timer
+    # Todo: Format time for tkinter
+    def __init__(self, initial_start_time):
+        # convert into seconds
+        initial_start_time = initial_start_time * 60
+        self.timer = Timer(initial_start_time, self.end)
 
         self.start_time = None
         self.cancel_time = None
-
         # Used for creating a new timer upon renewal
-        self.timeout = timeout
-        self.callback = self.end
+        self.timeout = initial_start_time
+
+        self.running = False
+        self.over = True    
 
     def cancel(self):
         self.timer.cancel()
 
     def start(self):
         self.start_time = time.time()
-        self.timer.start()
+        # create new timer, instead of trying to start old thread
+        self.timer = Timer(self.timeout,self.end)
+        self.running = True
+        self.over = False
 
     def pause(self):
-        self.cancel_time = time.time()
-        self.timer.cancel()
-        return self.get_remaining_time()
+        if self.running:
+            self.cancel_time = time.time()
+            self.cancel()
+            self.running = False
+            self.timeout = self.get_remaining_time()
+            
 
     def resume(self):
-        self.timeout = self.get_remaining_time()
-        self.timer = Timer(self.timeout, self.callback)
-        self.start_time = time.time()
-        self.timer.start()
+        if not self.running:
+            self.timer = Timer(self.timeout, self.end)
+            self.start_time = time.time()
+            self.running = True
 
     def get_remaining_time(self):
         if self.start_time is None or self.cancel_time is None:
-            return self.convert_time(self.timeout)
-        return self.convert_time(self.timeout - (self.cancel_time - self.start_time))
+            return self.timeout
+        else:
+            return ( self.timeout - (self.cancel_time - self.start_time) )
 
+    def get_time_live(self):
+        if self.running:
+            self.pause()
+            self.resume()
+            return self.get_clock()
 
     def convert_time(self, seconds):
         minutes, seconds = divmod(seconds, 60)
-        return str("{0}:{1}".format(str(minutes), str(seconds)))
+        # not good programming but fuck it
+        if seconds == 0:
+            return str("{0}:{1}".format(str(round(minutes)), "00"))
+        return str("{0}:{1}".format(str(round(minutes)), str(round(seconds))))
+
+    def get_clock(self):
+        return self.convert_time(self.get_remaining_time())
     
     def end(self):
         print("TIMES UP BITCH")
-        return True
+        self.over = True
