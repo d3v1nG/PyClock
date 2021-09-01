@@ -59,6 +59,8 @@ class ChessTimer:
         # not good programming but fuck it
         if seconds == 0:
             return str("{0}:{1}".format(str(round(minutes)), "00"))
+        elif round(seconds) == 60:
+            return str("{0}:{1}".format(str(round(minutes)), "59"))
         return str("{0}:{1}".format(str(round(minutes)), str(round(seconds))))
 
     def get_clock(self):
